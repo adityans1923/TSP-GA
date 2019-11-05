@@ -1,0 +1,6 @@
+att48_d.txt  --> 33523
+dantzig42_d.txt --> 699
+five_d.txt     --> 19
+fri26_d.txt --> 937
+gr17_d.txt   --> 2085
+p01_d.txt    --> 291
