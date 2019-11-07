@@ -4,3 +4,17 @@ five_d.txt     --> 19
 fri26_d.txt --> 937
 gr17_d.txt   --> 2085
 p01_d.txt    --> 291
+
+
+git push origin master
+  717  git push --help
+  718  git remote add origin https://github.com/adityans1923/TSP-GA.git
+  719  git commit -m
+  720  git commit -m "second commit"
+  721  git remote add origin https://github.com/adityans1923/TSP-GA.git
+  722  git add *
+  723  git commit -m "second commit"
+  724  git remote add origin https://github.com/adityans1923/TSP-GA.git
+  725  git push origin master
+  726  git remote -v
+  727  git push origin master

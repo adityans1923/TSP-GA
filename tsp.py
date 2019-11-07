@@ -103,7 +103,7 @@ class Population:
     def get_fittest(self):
         fittest = self.chromosomes[0]
         for route in self.chromosomes:
-            if route.fitness > fittest.fitness:
+            if route.travel_cost < fittest.travel_cost:
                 fittest = route
         return fittest
 
@@ -147,9 +147,9 @@ class TSP:
         total_genes = []
         TSP.init_distance_table(filename=filename)
         # creating population with size min(n+5,100) just in case when n=1 it can handle
-        self.pop = Population.generate_population(min(150, len(total_genes)+5), total_genes)
+        self.pop = Population.generate_population(min(150, len(total_genes) + 5), total_genes)
         self.optimization_matrix = []
-        self.display()
+        # self.display()
 
     @staticmethod
     def init_distance_table(filename="dantzig42_d.txt"):
@@ -185,11 +185,18 @@ class TSP:
     def all_gen(self):
         self.optimization_matrix.append((self.pop.avg_distance, self.pop.get_fittest().travel_cost))
         for i in range(1000):
-            print("Generation : {}".format(str(i)))
+            # print("Generation : {}".format(str(i)))
             self.pop = TSP.next_generation(self.pop, 7)
-            self.display()
+            # self.display()
             self.optimization_matrix.append((self.pop.avg_distance, self.pop.get_fittest().travel_cost))
             # input("")
+        self.plot_graph()
+
+    def plot_graph(self):
+        import matplotlib.pyplot as plt
+        arr = [self.optimization_matrix[i][1] for i in range(len(self.optimization_matrix))]
+        plt.plot(range(len(arr)), arr)
+        plt.show()
 
     @staticmethod
     def next_generation(pop, mut_rate=7):
@@ -197,12 +204,12 @@ class TSP:
         pop.chromosomes = sorted(pop.chromosomes, key=lambda x: x.travel_cost)
         # 33% top population is direct passing
         # to next generation (SELECTION)
-        elitism_num = len(pop) // 3
+        elitism_num = len(pop) // 4
         for i in range(elitism_num):
             new_gen.add(pop[i])
 
         # Crossover
-        for _ in range(len(pop)*2 // 3):
+        for _ in range(len(pop) * 3 // 4):
             parent_1 = pop.chromosomes[random.randint(0, len(pop) - 1)]
             parent_2 = pop.chromosomes[random.randint(0, len(pop) - 1)]
             child = TSP.crossover(parent_1, parent_2)
@@ -225,7 +232,7 @@ class TSP:
         def fill_with_parent2_genes(child, parent):
             j = 0
             for i in range(0, len(parent.genes)):
-                if child.genes[i] == None:
+                if child.genes[i] is None:
                     while parent.genes[j] in child.genes:
                         j += 1
                     child.genes[i] = parent.genes[j]
@@ -235,6 +242,40 @@ class TSP:
         child = Chromosome([None for _ in range(genes_n)])
         fill_with_parent1_genes(child, parent_1, genes_n // 2)
         fill_with_parent2_genes(child, parent_2)
+        return child
+
+    @staticmethod
+    def edge_recombination_crossover(parent_1, parent_2):
+        n_len = len(parent_1)
+        arr = [[None, None] for _ in range(n_len)]
+        visit = [False for _ in range(n_len)]
+        for i in range(n_len):
+            arr[parent_1[i]][0] = i
+            arr[parent_2[i]][1] = i
+        child = Chromosome([None for _ in range(n_len)])
+        for i in range(n_len):
+            if i == 0:
+                child[i] = parent_1[random.randint(0, n_len - 1)]
+            else:
+                pos1 = arr[child[i - 1]][0]
+                pos2 = arr[child[i - 1]][1]
+                a, b = parent_1[(pos1 - 1 + n_len) % n_len], parent_1[(i + 1) % n_len]
+                c, d = parent_2[(pos2 - 1 + n_len) % n_len], parent_1[(i + 1) % n_len]
+                if not visit[a] and (a == c or a == d):
+                    child[i] = a
+                elif not visit[b] and (b == c or b == d):
+                    child[i] = b
+                elif not visit[c]:
+                    child[i] = c
+                elif not visit[d]:
+                    child[i] = d
+                else:
+                    a = 0
+                    while visit[a]:
+                        a = random.randint(0, n_len - 1)
+                    child[i] = a
+            visit[child[i]] = True
+
         return child
 
 
