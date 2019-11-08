@@ -1,5 +1,6 @@
 import random
 import numpy
+import time
 
 distance_table = []
 total_genes = None
@@ -148,6 +149,7 @@ class TSP:
         TSP.init_distance_table(filename=filename)
         # creating population with size min(n+5,100) just in case when n=1 it can handle
         self.pop = Population.generate_population(min(150, len(total_genes) + 5), total_genes)
+        self.pop.chromosomes = sorted(self.pop.chromosomes, key=lambda x: x.travel_cost)
         self.optimization_matrix = []
         # self.display()
 
@@ -183,13 +185,16 @@ class TSP:
             self.pop[i].display()
 
     def all_gen(self):
-        self.optimization_matrix.append((self.pop.avg_distance, self.pop.get_fittest().travel_cost))
+        start_time = time.time()
         for i in range(1000):
             # print("Generation : {}".format(str(i)))
-            self.pop = TSP.next_generation(self.pop, 7)
+            self.pop = self.next_generation(mut_rate=7)
             # self.display()
-            self.optimization_matrix.append((self.pop.avg_distance, self.pop.get_fittest().travel_cost))
             # input("")
+        self.pop.chromosomes = sorted(self.pop.chromosomes, key=lambda x: x.travel_cost)
+        print("Top route")
+        self.pop[0].display()
+        print("Time taken : {}".format(str(time.time() - start_time)))
         self.plot_graph()
 
     def plot_graph(self):
@@ -198,31 +203,33 @@ class TSP:
         plt.plot(range(len(arr)), arr)
         plt.show()
 
-    @staticmethod
-    def next_generation(pop, mut_rate=7):
+    def next_generation(self, mut_rate=7):
         new_gen = Population([])
-        pop.chromosomes = sorted(pop.chromosomes, key=lambda x: x.travel_cost)
-        # 33% top population is direct passing
+        self.pop.chromosomes = sorted(self.pop.chromosomes, key=lambda x: x.travel_cost)
+        self.optimization_matrix.append((self.pop.avg_distance, self.pop[0].travel_cost))
+        n_len = len(self.pop)
+        # 25% top population is direct passing
         # to next generation (SELECTION)
-        elitism_num = len(pop) // 4
+        elitism_num = n_len // 4
         for i in range(elitism_num):
-            new_gen.add(pop[i])
+            new_gen.add(self.pop[i])
 
         # Crossover
-        for _ in range(len(pop) * 3 // 4):
-            parent_1 = pop.chromosomes[random.randint(0, len(pop) - 1)]
-            parent_2 = pop.chromosomes[random.randint(0, len(pop) - 1)]
-            child = TSP.crossover(parent_1, parent_2)
+        for _ in range(n_len - elitism_num):
+            parent_1 = self.pop.chromosomes[random.randint(0, n_len - 1)]
+            parent_2 = self.pop.chromosomes[random.randint(0, n_len - 1)]
+            child = TSP.ox(parent_1, parent_2)
             new_gen.add(child)
 
         # mutation
-        for i in range(len(new_gen)):
+        # here top chromosome may get worse
+        for i in range(elitism_num, len(new_gen)):
             TSP.mutate(new_gen[i], mut_rate)
         # New Generation
         return new_gen
 
     @staticmethod
-    def crossover(parent_1, parent_2):
+    def ox(parent_1, parent_2):
         def fill_with_parent1_genes(child, parent, genes_n):
             start_at = random.randint(0, len(parent.genes) - genes_n - 1)
             finish_at = start_at + genes_n
@@ -245,9 +252,9 @@ class TSP:
         return child
 
     @staticmethod
-    def edge_recombination_crossover(parent_1, parent_2):
+    def erx(parent_1, parent_2):
         n_len = len(parent_1)
-        arr = [[None, None] for _ in range(n_len)]
+        arr = [[0, 0] for _ in range(n_len)]
         visit = [False for _ in range(n_len)]
         for i in range(n_len):
             arr[parent_1[i]][0] = i
@@ -275,8 +282,8 @@ class TSP:
                         a = random.randint(0, n_len - 1)
                     child[i] = a
             visit[child[i]] = True
-
         return child
+
 
 
 # Driver Code

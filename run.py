@@ -1,3 +1,4 @@
 from tsp import *
-t=TSP()
-t.all_gen()
+tsp_obj = TSP()
+tsp_obj.all_gen()
+
