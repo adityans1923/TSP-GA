@@ -2,7 +2,7 @@ import random
 from tsp import Chromosome
 
 
-def rcx(parent_1, parent_2):
+def rcmx(parent_1, parent_2):
     def fill_with_parent1_genes(child, parent, genes_n):
         start_at = random.randint(0, len(parent.genes) - genes_n - 1)
         finish_at = start_at + genes_n
@@ -67,62 +67,45 @@ def cx2(parent_1, parent_2):
         pos_map[parent_1[i]] = i
     child[0] = parent_2[0]
     visit[child[0]] = True
+    j = 1
     for i in range(1, n_len):
         pos = pos_map[child[i - 1]]
         val = parent_2[pos]
-        child[i] = parent_1[val]
-    child.display()
+        pos = pos_map[val]
+        val = parent_2[pos]
+        # this val value is the value to stored for second child
+        pos = pos_map[val]
+        child[i] = parent_2[pos]
+        if visit[child[i]]:
+            while j < n_len:
+                if not visit[parent_2[j]]:
+                    child[i] = parent_2[j]
+                    break
+                j = j + 1
+        visit[child[i]] = True
     return child
 
 
 def pmx(parent_1, parent_2):
-    p1 = parent_1
-    p2 = parent_2
-    bcp = random.randint(0, len(p1) - 1)
-    scp = random.randint(bcp + 1, len(p1))
+    n_len = len(parent_1)
+    a = random.randint(1, n_len - 1 - n_len // 2)
+    b = a + n_len // 2
+    pos_map = [-1 for _ in range(n_len)]
+    visit = [False for _ in range(n_len)]
+    for i in range(a, b+1):
+        pos_map[parent_2[i]] = parent_1[i]
+    child = Chromosome([None for _ in range(n_len)])
+    for i in range(0, n_len):
+        if a <= i <= b:
+            child[i] = parent_2[i]
+        elif pos_map[parent_1[i]] == -1:
+            child[i] = parent_1[i]
+        else:
+            x = pos_map[parent_1[i]]
+            while pos_map[x] != -1:
+                x = pos_map[x]
+            child[i] = x
+        visit[child[i]] = True
+    return child
 
-    p1MiddleCross = p1[bcp:scp]
-    p2MiddleCross = p2[bcp:scp]
-
-    child1 = (p1[:bcp] + p2MiddleCross + p1[scp:])
-    child2 = (p2[:bcp] + p1MiddleCross + p2[scp:])
-
-    bd = []
-    for i in range(len(p1MiddleCross)):
-        bd.append([p2MiddleCross[i], p1MiddleCross[i]])
-
-    b = []
-    for pair in bd:
-        for i in range(len(bd)):
-            if pair[0] in bd[i] or pair[1] in bd[i]:
-                if pair != bd[i]:
-                    if pair[0] == bd[i][1]:
-                        pair[0] = bd[i][0]
-                    else:
-                        pair[1] = bd[i][1]
-
-        if pair not in b and pair[::-1] not in b:
-            b.append(pair)
-
-    for i in child1[:bcp]:
-        for x in b:
-            if i == x[0]:
-                i = x[1]
-
-    for i in child1[scp:]:
-        for x in b:
-            if i == x[0]:
-                i = x[1]
-
-    for i in child2[:bcp]:
-        for x in b:
-            if i == x[1]:
-                i = x[0]
-
-    for i in child2[scp:]:
-        for x in b:
-            if i == x[1]:
-                i = x[0]
-
-    return Chromosome(child2)
 

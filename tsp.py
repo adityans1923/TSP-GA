@@ -151,8 +151,8 @@ class TSP:
         self.pop = Population.generate_population(min(150, len(total_genes) + 5), total_genes)
         self.pop.chromosomes = sorted(self.pop.chromosomes, key=lambda x: x.travel_cost)
         self.optimization_matrix = []
-        from crossover import rcx, erx, cx2, pmx
-        self.cross_arr = [rcx, erx]
+        from crossover import rcmx, erx, cx2, pmx
+        self.cross_arr = [rcmx, erx, cx2, pmx]
         # self.display()
 
     @staticmethod
@@ -229,7 +229,7 @@ class TSP:
         # Crossover
         for _ in range(n_len - elitism_num):
             parent_1 = self.pop.chromosomes[random.randint(0, n_len - 1 - elitism_num)]
-            parent_2 = self.pop.chromosomes[random.randint(0, n_len - 1 - elitism_num)]
+            parent_2 = self.pop.chromosomes[random.randint(0, n_len - 1)]
             child = crossover(parent_1, parent_2)
             new_gen.add(child)
 
