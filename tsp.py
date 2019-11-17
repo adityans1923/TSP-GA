@@ -2,7 +2,6 @@ import random
 import numpy
 import time
 
-
 distance_table = []
 total_genes = None
 
@@ -152,6 +151,8 @@ class TSP:
         self.pop = Population.generate_population(min(150, len(total_genes) + 5), total_genes)
         self.pop.chromosomes = sorted(self.pop.chromosomes, key=lambda x: x.travel_cost)
         self.optimization_matrix = []
+        from crossover import rcx, erx, cx2, pmx
+        self.cross_arr = [rcx, erx]
         # self.display()
 
     @staticmethod
@@ -186,29 +187,38 @@ class TSP:
             self.pop[i].display()
 
     def all_gen(self):
-        start_time = time.time()
-        for i in range(1000):
-            # print("Generation : {}".format(str(i)))
-            self.pop = self.next_generation(mut_rate=7)
-            # self.display()
-            # input("")
-        self.pop.chromosomes = sorted(self.pop.chromosomes, key=lambda x: x.travel_cost)
-        print("Top route")
-        self.pop[0].display()
-        print("Time taken : {}".format(str(time.time() - start_time)))
+        initial_population = self.pop
+        plot_data = []
+        for j in range(len(self.cross_arr)):
+            self.pop = initial_population
+            start_time = time.time()
+            for i in range(1000):
+                # print("Generation : {}".format(str(i)))
+                self.pop = self.next_generation(self.cross_arr[j], mut_rate=7)
+                # self.display()
+                # input("")
+            self.pop.chromosomes = sorted(self.pop.chromosomes, key=lambda x: x.travel_cost)
+            print("Top route using {}".format(self.cross_arr[j].__name__))
+            self.pop[0].display()
+            print("Time taken : {}".format(str(time.time() - start_time)))
+            plot_data.append(self.optimization_matrix)
+            self.optimization_matrix = []
+
+        self.optimization_matrix = plot_data
         self.plot_graph()
 
     def plot_graph(self):
         import matplotlib.pyplot as plt
-        arr = [self.optimization_matrix[i][1] for i in range(len(self.optimization_matrix))]
-        plt.plot(range(len(arr)), arr)
+        names = [x.__name__ for x in self.cross_arr]
+        for i in range(len(self.optimization_matrix)):
+            plt.plot(range(len(self.optimization_matrix[i])), self.optimization_matrix[i])
+        plt.legend(names)
         plt.show()
 
-    def next_generation(self, mut_rate=7):
-        from crossover import crossover
+    def next_generation(self, crossover, mut_rate=7):
         new_gen = Population([])
         self.pop.chromosomes = sorted(self.pop.chromosomes, key=lambda x: x.travel_cost)
-        self.optimization_matrix.append((self.pop.avg_distance, self.pop[0].travel_cost))
+        self.optimization_matrix.append(self.pop[0].travel_cost)
         n_len = len(self.pop)
         # 25% top population is direct passing
         # to next generation (SELECTION)
@@ -218,8 +228,8 @@ class TSP:
 
         # Crossover
         for _ in range(n_len - elitism_num):
-            parent_1 = self.pop.chromosomes[random.randint(0, n_len - 1)]
-            parent_2 = self.pop.chromosomes[random.randint(0, n_len - 1)]
+            parent_1 = self.pop.chromosomes[random.randint(0, n_len - 1 - elitism_num)]
+            parent_2 = self.pop.chromosomes[random.randint(0, n_len - 1 - elitism_num)]
             child = crossover(parent_1, parent_2)
             new_gen.add(child)
 

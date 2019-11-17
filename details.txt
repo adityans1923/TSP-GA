@@ -9,4 +9,10 @@ p01_d.txt    --> 291
 git add *
 git commit -m "second commit"
 git remote add origin https://github.com/adityans1923/TSP-GA.git
-git push origin master
+git push -f origin master
+
+
+import matplotlib.pyplot as plt
+aa=[4,3,2,1]
+plt.plot(range(4),aa)
+plt.show()
