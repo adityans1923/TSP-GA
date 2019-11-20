@@ -192,7 +192,7 @@ class TSP:
         for j in range(len(self.cross_arr)):
             self.pop = initial_population
             start_time = time.time()
-            for i in range(1000):
+            for i in range(3000):
                 # print("Generation : {}".format(str(i)))
                 self.pop = self.next_generation(self.cross_arr[j], mut_rate=7)
                 # self.display()

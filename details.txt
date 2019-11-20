@@ -12,11 +12,6 @@ git remote add origin https://github.com/adityans1923/TSP-GA.git
 git push -f origin master
 
 
-import matplotlib.pyplot as plt
-aa=[4,3,2,1]
-plt.plot(range(4),aa)
-plt.show()
-
 from tsp import *
 from crossover import *
 p1 = Chromosome([2,3,7,1,6,0,5,4])

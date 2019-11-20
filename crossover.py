@@ -62,17 +62,21 @@ def cx2(parent_1, parent_2):
     n_len = len(parent_1)
     visit = [False for _ in range(n_len)]
     child = Chromosome([None for _ in range(n_len)])
+    child2 = Chromosome([None for _ in range(n_len)])
     pos_map = [0 for _ in range(n_len)]
     for i in range(n_len):
         pos_map[parent_1[i]] = i
     child[0] = parent_2[0]
     visit[child[0]] = True
     j = 1
-    for i in range(1, n_len):
+    for i in range(1, n_len + 1):
         pos = pos_map[child[i - 1]]
         val = parent_2[pos]
         pos = pos_map[val]
         val = parent_2[pos]
+        child2[i - 1] = val
+        if i == n_len:
+            break
         # this val value is the value to stored for second child
         pos = pos_map[val]
         child[i] = parent_2[pos]
@@ -83,6 +87,8 @@ def cx2(parent_1, parent_2):
                     break
                 j = j + 1
         visit[child[i]] = True
+    if child.travel_cost > child2.travel_cost:
+        return child2
     return child
 
 
@@ -92,7 +98,7 @@ def pmx(parent_1, parent_2):
     b = a + n_len // 2
     pos_map = [-1 for _ in range(n_len)]
     visit = [False for _ in range(n_len)]
-    for i in range(a, b+1):
+    for i in range(a, b + 1):
         pos_map[parent_2[i]] = parent_1[i]
     child = Chromosome([None for _ in range(n_len)])
     for i in range(0, n_len):
@@ -109,3 +115,5 @@ def pmx(parent_1, parent_2):
     return child
 
 
+def mycross(parent_1, parent_2):
+    return None
