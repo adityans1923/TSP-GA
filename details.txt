@@ -3,7 +3,11 @@ dantzig42_d.txt --> 699
 five_d.txt     --> 19
 fri26_d.txt --> 937
 gr17_d.txt   --> 2085
-p01_d.txt    --> 291
+p10_d.txt    --> 291
+ym7663        --> 238,314.
+dj38          --> 6656
+bcl380        --> 1621
+xqf131        --> 564
 
 
 git add *

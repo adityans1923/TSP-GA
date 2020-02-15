@@ -6,6 +6,28 @@ distance_table = []
 total_genes = None
 
 
+def read_tsp_data(tsp_name):
+    from haversine import haversine
+    import re
+    tsp_name = tsp_name
+    with open(tsp_name) as f:
+        content = f.read().splitlines()
+        cleaned = [x.lstrip() for x in content if x != ""]
+        lst = []
+        for s in cleaned:
+            if '0' <= s[0] <= '9':
+                _, first_cord, second_cord = re.split('\ +', s)
+                lst.append((float(first_cord), float(second_cord)))
+        global distance_table
+        distance_table = []
+        for i in range(len(lst)):
+            distance_table.append([0 for _ in range(len(lst))])
+            for j in range(len(lst)):
+                distance_table[i][j] = haversine(lst[i], lst[j], unit='km')
+        print("File Loaded")
+        return lst
+
+
 # class Gene:  # City
 #     def __init__(self, id_no):
 #         self.id = id_no
@@ -148,7 +170,7 @@ class TSP:
         total_genes = []
         TSP.init_distance_table(filename=filename)
         # creating population with size min(n+5,100) just in case when n=1 it can handle
-        self.pop = Population.generate_population(min(150, len(total_genes) + 5), total_genes)
+        self.pop = Population.generate_population(min(50, len(total_genes) + 5), total_genes)
         self.pop.chromosomes = sorted(self.pop.chromosomes, key=lambda x: x.travel_cost)
         self.optimization_matrix = []
         from crossover import rcmx, erx, cx2, pmx
@@ -159,7 +181,11 @@ class TSP:
     def init_distance_table(filename="dantzig42_d.txt"):
         global distance_table
         global total_genes
-        distance_table = numpy.loadtxt(filename)
+        _, file_type = filename.split(".")
+        if file_type == "tsp":
+            temp = read_tsp_data(filename)
+        else:
+            distance_table = numpy.loadtxt(filename)
         n = numpy.shape(distance_table)[1]
         total_genes = []
         for i in range(n):
@@ -189,23 +215,26 @@ class TSP:
     def all_gen(self):
         initial_population = self.pop
         plot_data = []
+        experiment_data = []
         for j in range(len(self.cross_arr)):
             self.pop = initial_population
             start_time = time.time()
-            for i in range(3000):
+            for i in range(500):
                 # print("Generation : {}".format(str(i)))
                 self.pop = self.next_generation(self.cross_arr[j], mut_rate=7)
                 # self.display()
                 # input("")
             self.pop.chromosomes = sorted(self.pop.chromosomes, key=lambda x: x.travel_cost)
-            print("Top route using {}".format(self.cross_arr[j].__name__))
-            self.pop[0].display()
-            print("Time taken : {}".format(str(time.time() - start_time)))
+            print("Top route using {} {}".format(self.cross_arr[j].__name__, self.pop[0].travel_cost))
+            # self.pop[0].display()
+            # print("Time taken : {}".format(str(time.time() - start_time)))
+            experiment_data.append((self.pop[0].travel_cost, time.time()-start_time))
             plot_data.append(self.optimization_matrix)
             self.optimization_matrix = []
 
         self.optimization_matrix = plot_data
-        self.plot_graph()
+        # self.plot_graph()
+        return experiment_data
 
     def plot_graph(self):
         import matplotlib.pyplot as plt
@@ -220,7 +249,7 @@ class TSP:
         self.pop.chromosomes = sorted(self.pop.chromosomes, key=lambda x: x.travel_cost)
         self.optimization_matrix.append(self.pop[0].travel_cost)
         n_len = len(self.pop)
-        # 25% top population is direct passing
+        # 10% top population is direct passing
         # to next generation (SELECTION)
         elitism_num = n_len // 4
         for i in range(elitism_num):

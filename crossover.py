@@ -116,4 +116,6 @@ def pmx(parent_1, parent_2):
 
 
 def mycross(parent_1, parent_2):
+    n_len = len(parent_1)
+    a = random.randint(1, n_len - 1 - n_len // 2)
     return None
